@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>TenseCraft — 12-Tense English & Bangla Converter</title>
+    <!-- Google Fonts: Lato (English) & Noto Sans Bengali (Bangla) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Lato', 'Noto Sans Bengali', 'sans-serif'],
+                        en: ['Lato', 'sans-serif'],
+                        bn: ['Noto Sans Bengali', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+header.sticky{top:env(safe-area-inset-top,0px)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:rgba(255,255,255,.92)}
+#auxTable th,#auxTable td{padding:10px 12px;text-align:left;border-bottom:1px solid #e2e8f0;vertical-align:top}
+#auxTable thead th{background:#f8fafc;font-size:13px;white-space:nowrap}
+#auxTable thead th small{display:block;font-weight:500;color:#64748b;font-size:11px}
+#auxTable td.aux-hl,#auxTable th.aux-hl{background:#e0e7ff}
+#auxTable thead th.aux-hl{box-shadow:inset 0 -3px 0 #4f46e5}
+</style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-en antialiased min-h-screen flex flex-col selection:bg-brand-600 selection:text-white">
+
+    <!-- Toast Notification Container (Replaces alert()) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Top Navigation / Header -->
+    <header class="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-indigo-800 text-white flex items-center justify-center shadow-md shadow-brand-500/20">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-black tracking-tight text-slate-900 leading-none">
+                        Tense<span class="text-brand-600">Craft</span>
+                    </h1>
+                    <p class="text-xs text-slate-500 font-bn mt-0.5">ইংরেজি ও বাংলা ১২ টেন্স কনভার্টার</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button id="copy-all-btn" type="button" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200/80 active:scale-[0.98] transition-all cursor-pointer">
+                    <svg class="w-4 h-4 text-brand-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                    <span>Copy All 12</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+
+        <!-- Hero & Sentence Input Card -->
+        <section class="bg-white rounded-3xl shadow-sm border border-slate-200/90 p-5 sm:p-8 mb-8 relative overflow-hidden">
+            <!-- Subtle decorative gradient blob -->
+            <div class="absolute -top-24 -right-24 w-64 h-64 bg-brand-50 rounded-full blur-3xl opacity-70 pointer-events-none"></div>
+
+            <div class="relative z-10">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5">
+                    <div>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-brand-50 text-brand-700 border border-brand-100 mb-2.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-brand-600 animate-pulse"></span>
+                            Smart Grammar & Bilingual Engine
+                        </span>
+                        <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                            Transform Any Sentence Into All 12 Tenses
+                        </h2>
+                        <p class="text-sm sm:text-base text-slate-500 mt-1">
+                            Type a sentence in <strong class="text-slate-700">any tense</strong> (past, present, or future) — we’ll detect its root verb and conjugate it across English &amp; <span class="font-bn text-slate-700 font-medium">বাংলা</span>.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Input Box & Convert Button -->
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <div class="relative flex-1">
+                        <input
+                            id="sentence-input"
+                            type="text"
+                            value="I eat rice"
+                            placeholder="Type any English sentence (e.g., She was writing a letter, They went to school)..."
+                            aria-label="Enter an English sentence"
+                            class="w-full h-14 pl-4 pr-11 rounded-2xl bg-slate-50 border-2 border-slate-200 text-slate-900 font-en text-base sm:text-lg font-medium placeholder:text-slate-400 focus:bg-white focus:border-brand-600 focus:ring-4 focus:ring-brand-500/10 outline-none transition-all"
+                        />
+                        <button
+                            id="clear-input-btn"
+                            type="button"
+                            title="Clear input"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 flex items-center justify-center transition-colors cursor-pointer"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <button
+                        id="convert-btn"
+                        type="button"
+                        class="h-14 px-7 rounded-2xl bg-gradient-to-r from-brand-600 to-indigo-700 hover:from-brand-700 hover:to-indigo-800 text-white font-bold text-base shadow-lg shadow-brand-600/25 hover:shadow-brand-600/35 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+                    >
+                        <span>Convert to 12 Tenses</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Quick-fill Example Chips -->
+                <div class="mt-4 flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 mr-1">Try Examples:</span>
+                    <button type="button" data-example="I eat rice" class="example-chip px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-brand-50 text-slate-700 hover:text-brand-700 border border-slate-200/80 hover:border-brand-200 transition-all cursor-pointer">I eat rice</button>
+                    <button type="button" data-example="She plays football" class="example-chip px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-brand-50 text-slate-700 hover:text-brand-700 border border-slate-200/80 hover:border-brand-200 transition-all cursor-pointer">She plays football</button>
+                    <button type="button" data-example="They were writing a letter" class="example-chip px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-brand-50 text-slate-700 hover:text-brand-700 border border-slate-200/80 hover:border-brand-200 transition-all cursor-pointer">They were writing a letter</button>
+                    <button type="button" data-example="He went to school" class="example-chip px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-brand-50 text-slate-700 hover:text-brand-700 border border-slate-200/80 hover:border-brand-200 transition-all cursor-pointer">He went to school</button>
+                    <button type="button" data-example="We will read a book" class="example-chip px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-brand-50 text-slate-700 hover:text-brand-700 border border-slate-200/80 hover:border-brand-200 transition-all cursor-pointer">We will read a book</button>
+                    <button type="button" data-example="Rahim has bought a car" class="example-chip px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-brand-50 text-slate-700 hover:text-brand-700 border border-slate-200/80 hover:border-brand-200 transition-all cursor-pointer">Rahim has bought a car</button>
+                </div>
+
+                <!-- Detected Sentence Breakdown Pill Bar -->
+                <div id="analysis-bar" class="mt-6 pt-5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex flex-wrap items-center gap-2 text-xs">
+                        <span class="font-bold text-slate-400 uppercase tracking-wider">Parsed Components:</span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-800 font-semibold border border-indigo-100">
+                            <span class="text-indigo-400">Subject:</span>
+                            <span id="parsed-subject">I</span>
+                            <span id="parsed-subject-bn" class="font-bn text-indigo-600">(আমি)</span>
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 font-semibold border border-emerald-100">
+                            <span class="text-emerald-500">Verb (V1/V2/V3):</span>
+                            <span id="parsed-verb">eat / ate / eaten</span>
+                            <span id="parsed-verb-bn" class="font-bn text-emerald-600">(খাওয়া)</span>
+                        </span>
+                        <span id="parsed-object-badge" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 font-semibold border border-amber-100">
+                            <span class="text-amber-500">Object:</span>
+                            <span id="parsed-object">rice</span>
+                            <span id="parsed-object-bn" class="font-bn text-amber-600">(ভাত)</span>
+                        </span>
+                    </div>
+                    <div class="text-xs text-slate-500">
+                        Detected Input Tense: <span id="detected-tense-label" class="font-bold text-brand-700">Present Indefinite</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filter Tabs & View Controls -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div class="inline-flex p-1.5 rounded-2xl bg-slate-200/70 border border-slate-200 self-start overflow-x-auto max-w-full">
+                <button type="button" data-filter="all" class="filter-tab active px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-white text-brand-700 shadow-sm transition-all cursor-pointer whitespace-nowrap">
+                    All 12 Tenses
+                </button>
+                <button type="button" data-filter="present" class="filter-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 transition-all cursor-pointer whitespace-nowrap">
+                    Present (বর্তমান)
+                </button>
+                <button type="button" data-filter="past" class="filter-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 transition-all cursor-pointer whitespace-nowrap">
+                    Past (অতীত)
+                </button>
+                <button type="button" data-filter="future" class="filter-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 transition-all cursor-pointer whitespace-nowrap">
+                    Future (ভবিষ্যৎ)
+                </button>
+            </div>
+
+            <label class="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-600 cursor-pointer select-none">
+                <input id="toggle-formulas" type="checkbox" checked class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300">
+                <span>Show Grammatical Structures</span>
+            </label>
+        </div>
+
+        <!-- 12 Tense Output Container -->
+        <div id="tense-results-container" class="space-y-10">
+            <!-- Dynamically populated sections for Present, Past, and Future -->
+        </div>
+
+        <!-- Person, Number & Auxiliary Verbs -->
+        <section id="aux-section" class="bg-white rounded-3xl shadow-sm border border-slate-200/90 p-5 sm:p-8 mt-10">
+            <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Person, Number &amp; Auxiliary Verbs</h2>
+            <p class="font-bn text-sm sm:text-base text-slate-500 mt-1">পুরুষ, বচন ও সহায়ক ক্রিয়া — কোন টেন্সে কোন সাবজেক্টের সাথে কোন auxiliary verb বসে</p>
+            <p id="aux-detected" class="mt-4 text-sm text-slate-700"></p>
+            <div class="mt-4 overflow-x-auto rounded-2xl border border-slate-200">
+                <table id="auxTable" class="w-full text-sm" style="min-width:900px;border-collapse:collapse"></table>
+            </div>
+            <p class="font-bn text-xs sm:text-sm text-slate-500 mt-3 leading-relaxed">V1 = base verb · V1+s/es = he/she/it-এর সাথে verb-এ s/es · V2 = past form · V3 = past participle · V-ing = present participle। Present Simple ও Past Simple-এ affirmative বাক্যে auxiliary বসে না (do/does/did শুধু negative ও question-এ)। Future-এ I/We-এর সাথে traditional ব্যাকরণে shall ব্যবহার হয়।</p>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200/80 py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+            <p class="font-en"><strong>TenseCraft</strong> — English (Lato) &amp; <span class="font-bn">বাংলা (Noto Sans Bengali)</span> 12-Tense Grammar Engine.</p>
+            <p class="font-bn text-slate-400">ইংরেজি গ্রামার এবং টেন্স শেখার সহজ মাধ্যম</p>
+        </div>
+    </footer>
+
+    <!-- Application Logic -->
+    <script>
+        /**
+         * ============================================================================
+         * 1. COMPREHENSIVE LEXICON & MORPHOLOGICAL ENGINE (ENGLISH & BANGLA)
+         * ============================================================================
+         * Each verb entry contains:
+         *  - v1: base form
+         *  - v2: simple past
+         *  - v3: past participle
+         *  - ving: present participle (-ing)
+         *  - vs: 3rd person singular (-s/-es)
+         *  - bn: {
+         *      meaning: infinitive noun form in Bangla (e.g., 'খাওয়া'),
+         *      stems: {
+         *        presInd: { p1, p2, p3 },        // Present Indefinite (করি / করো / করে)
+         *        presCont: { p1, p2, p3 },       // Present Continuous (করছি / করছো / করছে)
+         *        presPerf: { p1, p2, p3 },       // Present Perfect (করেছি / করেছো / করেছে)
+         *        pastInd: { p1, p2, p3 },        // Past Indefinite (করেছিলাম / করেছিলে / করেছিল)
+         *        pastCont: { p1, p2, p3 },       // Past Continuous (করছিলাম / করছিলে / করছিল)
+         *        futInd: { p1, p2, p3 },         // Future Indefinite (করব / করবে / করবে)
+         *        futCont: { p1, p2, p3 },        // Future Continuous (করতে থাকব / থাকতে থাকবে / করতে থাকবে)
+         *        futPerf: { p1, p2, p3 }         // Future Perfect (করে থাকব / করে থাকবে / করে থাকবে)
+         *      }
+         *    }
+         * Note: Person mapping in Bangla:
+         *  - p1: আমি / আমরা (I / We)
+         *  - p2: তুমি / তোমরা / আপনি (You)
+         *  - p3: সে / তিনি / তারা / যেকোনো নাম (He / She / It / They / Noun)
+         */
+
+        // Helper to generate standard Sadhu/Cholit Bangla verb conjugations from roots
+        function buildBanglaVerb(meaning, rPres, rCont, rPerf, rInf) {
+            return {
+                meaning,
+                presInd:  { p1: `${rPres}ি`,      p2: `${rPres}ো`,      p3: `${rPres}ে` },
+                presCont: { p1: `${rCont}ছি`,     p2: `${rCont}ছো`,     p3: `${rCont}ছে` },
+                presPerf: { p1: `${rPerf}েছি`,    p2: `${rPerf}েছো`,    p3: `${rPerf}েছে` },
+                pastInd:  { p1: `${rPerf}েছিলাম`, p2: `${rPerf}েছিলে`, p3: `${rPerf}েছিল` },
+                pastCont: { p1: `${rCont}ছিলাম`,  p2: `${rCont}ছিলে`,  p3: `${rCont}ছিল` },
+                futInd:   { p1: `${rInf}ব`,       p2: `${rInf}বে`,      p3: `${rInf}বে` },
+                futCont:  { p1: `${rInf}তে থাকব`, p2: `${rInf}তে থাকবে`, p3: `${rInf}তে থাকবে` },
+                futPerf:  { p1: `${rPerf}ে থাকব`, p2: `${rPerf}ে থাকবে`, p3: `${rPerf}ে থাকবে` }
+            };
+        }
+
+        // Core Irregular & Common Verbs Database with exact Bangla conjugations
+        const VERB_DB = {
+            eat: {
+                v1: 'eat', v2: 'ate', v3: 'eaten', ving: 'eating', vs: 'eats',
+                bn: {
+                    meaning: 'খাওয়া',
+                    presInd:  { p1: 'খাই',       p2: 'খাও',       p3: 'খায়' },
+                    presCont: { p1: 'খাচ্ছি',    p2: 'খাচ্ছো',    p3: 'খাচ্ছে' },
+                    presPerf: { p1: 'খেয়েছি',   p2: 'খেয়েছো',   p3: 'খেয়েছে' },
+                    pastInd:  { p1: 'খেয়েছিলাম', p2: 'খেয়েছিলে', p3: 'খেয়েছিল' },
+                    pastCont: { p1: 'খাচ্ছিলাম', p2: 'খাচ্ছিলে', p3: 'খাচ্ছিল' },
+                    futInd:   { p1: 'খাব',       p2: 'খাবে',      p3: 'খাবে' },
+                    futCont:  { p1: 'খেতে থাকব', p2: 'খেতে থাকবে', p3: 'খেতে থাকবে' },
+                    futPerf:  { p1: 'খেয়ে থাকব', p2: 'খেয়ে থাকবে', p3: 'খেয়ে থাকবে' }
+                }
+            },
+            go: {
+                v1: 'go', v2: 'went', v3: 'gone', ving: 'going', vs: 'goes',
+                bn: {
+                    meaning: 'যাওয়া',
+                    presInd:  { p1: 'যাই',       p2: 'যাও',       p3: 'যায়' },
+                    presCont: { p1: 'যাচ্ছি',    p2: 'যাচ্ছো',    p3: 'যাচ্ছে' },
+                    presPerf: { p1: 'গিয়েছি',   p2: 'গিয়েছো',   p3: 'গিয়েছে' },
+                    pastInd:  { p1: 'গিয়েছিলাম', p2: 'গিয়েছিলে', p3: 'গিয়েছিল' },
+                    pastCont: { p1: 'যাচ্ছিলাম', p2: 'যাচ্ছিলে', p3: 'যাচ্ছিল' },
+                    futInd:   { p1: 'যাব',       p2: 'যাবে',      p3: 'যাবে' },
+                    futCont:  { p1: 'যেতে থাকব', p2: 'যেতে থাকবে', p3: 'যেতে থাকবে' },
+                    futPerf:  { p1: 'গিয়ে থাকব', p2: 'গিয়ে থাকবে', p3: 'গিয়ে থাকবে' }
+                }
+            },
+            come: {
+                v1: 'come', v2: 'came', v3: 'come', ving: 'coming', vs: 'comes',
+                bn: {
+                    meaning: 'আসা',
+                    presInd:  { p1: 'আসি',       p2: 'আসো',       p3: 'আসে' },
+                    presCont: { p1: 'আসছি',     p2: 'আসছো',     p3: 'আসছে' },
+                    presPerf: { p1: 'এসেছি',    p2: 'এসেছো',    p3: 'এসেছে' },
+                    pastInd:  { p1: 'এসেছিলাম', p2: 'এসেছিলে', p3: 'এসেছিল' },
+                    pastCont: { p1: 'আসছিলাম',  p2: 'আসছিলে',  p3: 'আসছিল' },
+                    futInd:   { p1: 'আসব',       p2: 'আসবে',      p3: 'আসবে' },
+                    futCont:  { p1: 'আসতে থাকব', p2: 'আসতে থাকবে', p3: 'আসতে থাকবে' },
+                    futPerf:  { p1: 'এসে থাকব', p2: 'এসে থাকবে', p3: 'এসে থাকবে' }
+                }
+            },
+            do: {
+                v1: 'do', v2: 'did', v3: 'done', ving: 'doing', vs: 'does',
+                bn: buildBanglaVerb('করা', 'কর', 'কর', 'কর', 'কর')
+            },
+            play: {
+                v1: 'play', v2: 'played', v3: 'played', ving: 'playing', vs: 'plays',
+                bn: buildBanglaVerb('খেলা', 'খেল', 'খেল', 'খেল', 'খেল')
+            },
+            write: {
+                v1: 'write', v2: 'wrote', v3: 'written', ving: 'writing', vs: 'writes',
+                bn: {
+                    meaning: 'লেখা',
+                    presInd:  { p1: 'লিখি',       p2: 'লেখো',       p3: 'লেখে' },
+                    presCont: { p1: 'লিখছি',     p2: 'লিখছো',     p3: 'লিখছে' },
+                    presPerf: { p1: 'লিখেছি',    p2: 'লিখেছো',    p3: 'লিখেছে' },
+                    pastInd:  { p1: 'লিখেছিলাম', p2: 'লিখেছিলে', p3: 'লিখেছিল' },
+                    pastCont: { p1: 'লিখছিলাম',  p2: 'লিখছিলে',  p3: 'লিখছিল' },
+                    futInd:   { p1: 'লিখব',       p2: 'লিখবে',      p3: 'লিখবে' },
+                    futCont:  { p1: 'লিখতে থাকব', p2: 'লিখতে থাকবে', p3: 'লিখতে থাকবে' },
+                    futPerf:  { p1: 'লিখে থাকব', p2: 'লিখে থাকবে', p3: 'লিখে থাকবে' }
+                }
+            },
+            read: {
+                v1: 'read', v2: 'read', v3: 'read', ving: 'reading', vs: 'reads',
+                bn: {
+                    meaning: 'পড়া',
+                    presInd:  { p1: 'পড়ি',       p2: 'পড়ো',       p3: 'পড়ে' },
+                    presCont: { p1: 'পড়ছি',     p2: 'পড়ছো',     p3: 'পড়ছে' },
+                    presPerf: { p1: 'পড়েছি',    p2: 'পড়েছো',    p3: 'পড়েছে' },
+                    pastInd:  { p1: 'পড়েছিলাম', p2: 'পড়েছিলে', p3: 'পড়েছিল' },
+                    pastCont: { p1: 'পড়ছিলাম',  p2: 'পড়ছিলে',  p3: 'পড়ছিল' },
+                    futInd:   { p1: 'পড়ব',       p2: 'পড়বে',      p3: 'পড়বে' },
+                    futCont:  { p1: 'পড়তে থাকব', p2: 'পড়তে থাকবে', p3: 'পড়তে থাকবে' },
+                    futPerf:  { p1: 'পড়ে থাকব', p2: 'পড়ে থাকবে', p3: 'পড়ে থাকবে' }
+                }
+            },
+            see: {
+                v1: 'see', v2: 'saw', v3: 'seen', ving: 'seeing', vs: 'sees',
+                bn: {
+                    meaning: 'দেখা',
+                    presInd:  { p1: 'দেখি',       p2: 'দেখো',       p3: 'দেখে' },
+                    presCont: { p1: 'দেখছি',     p2: 'দেখছো',     p3: 'দেখছে' },
+                    presPerf: { p1: 'দেখেছি',    p2: 'দেখেছো',    p3: 'দেখেছে' },
+                    pastInd:  { p1: 'দেখেছিলাম', p2: 'দেখেছিলে', p3: 'দেখেছিল' },
+                    pastCont: { p1: 'দেখছিলাম',  p2: 'দেখছিলে',  p3: 'দেখছিল' },
+                    futInd:   { p1: 'দেখব',       p2: 'দেখবে',      p3: 'দেখবে' },
+                    futCont:  { p1: 'দেখতে থাকব', p2: 'দেখতে থাকবে', p3: 'দেখতে থাকবে' },
+                    futPerf:  { p1: 'দেখে থাকব', p2: 'দেখে থাকবে', p3: 'দেখে থাকবে' }
+                }
+            },
+            watch: {
+                v1: 'watch', v2: 'watched', v3: 'watched', ving: 'watching', vs: 'watches',
+                bn: buildBanglaVerb('দেখা', 'দেখ', 'দেখ', 'দেখ', 'দেখ')
+            },
+            drink: {
+                v1: 'drink', v2: 'drank', v3: 'drunk', ving: 'drinking', vs: 'drinks',
+                bn: buildBanglaVerb('পান করা', 'পান কর', 'পান কর', 'পান কর', 'পান কর')
+            },
+            buy: {
+                v1: 'buy', v2: 'bought', v3: 'bought', ving: 'buying', vs: 'buys',
+                bn: {
+                    meaning: 'কেনা',
+                    presInd:  { p1: 'কিনি',       p2: 'কেনো',       p3: 'কেনে' },
+                    presCont: { p1: 'কিনছি',     p2: 'কিনছো',     p3: 'কিনছে' },
+                    presPerf: { p1: 'কিনেছি',    p2: 'কিনেছো',    p3: 'কিনেছে' },
+                    pastInd:  { p1: 'কিনেছিলাম', p2: 'কিনেছিলে', p3: 'কিনেছিল' },
+                    pastCont: { p1: 'কিনছিলাম',  p2: 'কিনছিলে',  p3: 'কিনছিল' },
+                    futInd:   { p1: 'কিনব',       p2: 'কিনবে',      p3: 'কিনবে' },
+                    futCont:  { p1: 'কিনতে থাকব', p2: 'কিনতে থাকবে', p3: 'কিনতে থাকবে' },
+                    futPerf:  { p1: 'কিনে থাকব', p2: 'কিনে থাকবে', p3: 'কিনে থাকবে' }
+                }
+            },
+            make: {
+                v1: 'make', v2: 'made', v3: 'made', ving: 'making', vs: 'makes',
+                bn: buildBanglaVerb('তৈরি করা', 'তৈরি কর', 'তৈরি কর', 'তৈরি কর', 'তৈরি কর')
+            },
+            cook: {
+                v1: 'cook', v2: 'cooked', v3: 'cooked', ving: 'cooking', vs: 'cooks',
+                bn: buildBanglaVerb('রান্না করা', 'রান্না কর', 'রান্না কর', 'রান্না কর', 'রান্না কর')
+            },
+            learn: {
+                v1: 'learn', v2: 'learned', v3: 'learned', ving: 'learning', vs: 'learns',
+                bn: {
+                    meaning: 'শেখা',
+                    presInd:  { p1: 'শিখি',       p2: 'শেখো',       p3: 'শেখে' },
+                    presCont: { p1: 'শিখছি',     p2: 'শিখছো',     p3: 'শিখছে' },
+                    presPerf: { p1: 'শিখেছি',    p2: 'শিখেছো',    p3: 'শিখেছে' },
+                    pastInd:  { p1: 'শিখেছিলাম', p2: 'শিখেছিলে', p3: 'শিখেছিল' },
+                    pastCont: { p1: 'শিখছিলাম',  p2: 'শিখছিলে',  p3: 'শিখছিল' },
+                    futInd:   { p1: 'শিখব',       p2: 'শিখবে',      p3: 'শিখবে' },
+                    futCont:  { p1: 'শিখতে থাকব', p2: 'শিখতে থাকবে', p3: 'শিখতে থাকবে' },
+                    futPerf:  { p1: 'শিখে থাকব', p2: 'শিখে থাকবে', p3: 'শিখে থাকবে' }
+                }
+            },
+            study: {
+                v1: 'study', v2: 'studied', v3: 'studied', ving: 'studying', vs: 'studies',
+                bn: buildBanglaVerb('পড়াশোনা করা', 'পড়াশোনা কর', 'পড়াশোনা কর', 'পড়াশোনা কর', 'পড়াশোনা কর')
+            },
+            work: {
+                v1: 'work', v2: 'worked', v3: 'worked', ving: 'working', vs: 'works',
+                bn: buildBanglaVerb('কাজ করা', 'কাজ কর', 'কাজ কর', 'কাজ কর', 'কাজ কর')
+            },
+            sleep: {
+                v1: 'sleep', v2: 'slept', v3: 'slept', ving: 'sleeping', vs: 'sleeps',
+                bn: {
+                    meaning: 'ঘুমানো',
+                    presInd:  { p1: 'ঘুমাই',       p2: 'ঘুমাও',       p3: 'ঘুমায়' },
+                    presCont: { p1: 'ঘুমাচ্ছি',    p2: 'ঘুমাচ্ছো',    p3: 'ঘুমাচ্ছে' },
+                    presPerf: { p1: 'ঘুমিয়েছি',   p2: 'ঘুমিয়েছো',   p3: 'ঘুমিয়েছে' },
+                    pastInd:  { p1: 'ঘুমিয়েছিলাম', p2: 'ঘুমিয়েছিলে', p3: 'ঘুমিয়েছিল' },
+                    pastCont: { p1: 'ঘুমাচ্ছিলাম', p2: 'ঘুমাচ্ছিলে', p3: 'ঘুমাচ্ছিল' },
+                    futInd:   { p1: 'ঘুমাব',       p2: 'ঘুমাবে',      p3: 'ঘুমাবে' },
+                    futCont:  { p1: 'ঘুমাতে থাকব', p2: 'ঘুমাতে থাকবে', p3: 'ঘুমাতে থাকবে' },
+                    futPerf:  { p1: 'ঘুমিয়ে থাকব', p2: 'ঘুমিয়ে থাকবে', p3: 'ঘুমিয়ে থাকবে' }
+                }
+            },
+            run: {
+                v1: 'run', v2: 'ran', v3: 'run', ving: 'running', vs: 'runs',
+                bn: {
+                    meaning: 'দৌড়ানো',
+                    presInd:  { p1: 'দৌড়াই',       p2: 'দৌড়াও',       p3: 'দৌড়ায়' },
+                    presCont: { p1: 'দৌড়াচ্ছি',    p2: 'দৌড়াচ্ছো',    p3: 'দৌড়াচ্ছে' },
+                    presPerf: { p1: 'দৌড়েছি',     p2: 'দৌড়েছো',     p3: 'দৌড়েছে' },
+                    pastInd:  { p1: 'দৌড়েছিলাম', p2: 'দৌড়েছিলে', p3: 'দৌড়েছিল' },
+                    pastCont: { p1: 'দৌড়াচ্ছিলাম', p2: 'দৌড়াচ্ছিলে', p3: 'দৌড়াচ্ছিল' },
+                    futInd:   { p1: 'দৌড়াব',       p2: 'দৌড়াবে',      p3: 'দৌড়াবে' },
+                    futCont:  { p1: 'দৌড়াতে থাকব', p2: 'দৌড়াতে থাকবে', p3: 'দৌড়াতে থাকবে' },
+                    futPerf:  { p1: 'দৌড়ে থাকব',  p2: 'দৌড়ে থাকবে',  p3: 'দৌড়ে থাকবে' }
+                }
+            },
+            walk: {
+                v1: 'walk', v2: 'walked', v3: 'walked', ving: 'walking', vs: 'walks',
+                bn: {
+                    meaning: 'হাঁটা',
+                    presInd:  { p1: 'হাঁটি',       p2: 'হাঁটো',       p3: 'হাঁটে' },
+                    presCont: { p1: 'হাঁটছি',     p2: 'হাঁটছো',     p3: 'হাঁটছে' },
+                    presPerf: { p1: 'হেঁটেছি',    p2: 'হেঁটেছো',    p3: 'হেঁটেছে' },
+                    pastInd:  { p1: 'হেঁটেছিলাম', p2: 'হেঁটেছিলে', p3: 'হেঁটেছিল' },
+                    pastCont: { p1: 'হাঁটছিলাম',  p2: 'হাঁটছিলে',  p3: 'হাঁটছিল' },
+                    futInd:   { p1: 'হাঁটব',       p2: 'হাঁটবে',      p3: 'হাঁটবে' },
+                    futCont:  { p1: 'হাঁটতে থাকব', p2: 'হাঁটতে থাকবে', p3: 'হাঁটতে থাকবে' },
+                    futPerf:  { p1: 'হেঁটে থাকব', p2: 'হেঁটে থাকবে', p3: 'হেঁটে থাকবে' }
+                }
+            },
+            speak: {
+                v1: 'speak', v2: 'spoke', v3: 'spoken', ving: 'speaking', vs: 'speaks',
+                bn: buildBanglaVerb('কথা বলা', 'কথা বল', 'কথা বল', 'কথা বল', 'কথা বল')
+            },
+            sing: {
+                v1: 'sing', v2: 'sang', v3: 'sung', ving: 'singing', vs: 'sings',
+                bn: {
+                    meaning: 'গান গাওয়া',
+                    presInd:  { p1: 'গান গাই',       p2: 'গান গাও',       p3: 'গান গায়' },
+                    presCont: { p1: 'গান গাইছি',    p2: 'গান গাইছো',    p3: 'গান গাইছে' },
+                    presPerf: { p1: 'গান গেয়েছি',   p2: 'গান গেয়েছো',   p3: 'গান গেয়েছে' },
+                    pastInd:  { p1: 'গান গেয়েছিলাম', p2: 'গান গেয়েছিলে', p3: 'গান গেয়েছিল' },
+                    pastCont: { p1: 'গান গাইছিলাম', p2: 'গান গাইছিলে', p3: 'গান গাইছিল' },
+                    futInd:   { p1: 'গান গাইব',       p2: 'গান গাইবে',      p3: 'গান গাইবে' },
+                    futCont:  { p1: 'গান গাইতে থাকব', p2: 'গান গাইতে থাকবে', p3: 'গান গাইতে থাকবে' },
+                    futPerf:  { p1: 'গান গেয়ে থাকব', p2: 'গান গেয়ে থাকবে', p3: 'গান গেয়ে থাকবে' }
+                }
+            },
+            help: {
+                v1: 'help', v2: 'helped', v3: 'helped', ving: 'helping', vs: 'helps',
+                bn: buildBanglaVerb('সাহায্য করা', 'সাহায্য কর', 'সাহায্য কর', 'সাহায্য কর', 'সাহায্য কর')
+            },
+            love: {
+                v1: 'love', v2: 'loved', v3: 'loved', ving: 'loving', vs: 'loves',
+                bn: buildBanglaVerb('ভালোবাসা', 'ভালোবাস', 'ভালোবাস', 'ভালোবাস', 'ভালোবাস')
+            },
+            take: {
+                v1: 'take', v2: 'took', v3: 'taken', ving: 'taking', vs: 'takes',
+                bn: {
+                    meaning: 'নেওয়া',
+                    presInd:  { p1: 'নিই',       p2: 'নাও',       p3: 'নেয়' },
+                    presCont: { p1: 'নিচ্ছি',    p2: 'নিচ্ছো',    p3: 'নিচ্ছে' },
+                    presPerf: { p1: 'নিয়েছি',   p2: 'নিয়েছো',   p3: 'নিয়েছে' },
+                    pastInd:  { p1: 'নিয়েছিলাম', p2: 'নিয়েছিলে', p3: 'নিয়েছিল' },
+                    pastCont: { p1: 'নিচ্ছিলাম', p2: 'নিচ্ছিলে', p3: 'নিচ্ছিল' },
+                    futInd:   { p1: 'নেব',       p2: 'নেবে',      p3: 'নেবে' },
+                    futCont:  { p1: 'নিতে থাকব', p2: 'নিতে থাকবে', p3: 'নিতে থাকবে' },
+                    futPerf:  { p1: 'নিয়ে থাকব', p2: 'নিয়ে থাকবে', p3: 'নিয়ে থাকবে' }
+                }
+            },
+            give: {
+                v1: 'give', v2: 'gave', v3: 'given', ving: 'giving', vs: 'gives',
+                bn: {
+                    meaning: 'দেওয়া',
+                    presInd:  { p1: 'দিই',       p2: 'দাও',       p3: 'দেয়' },
+                    presCont: { p1: 'দিচ্ছি',    p2: 'দিচ্ছো',    p3: 'দিচ্ছে' },
+                    presPerf: { p1: 'দিয়েছি',   p2: 'দিয়েছো',   p3: 'দিয়েছে' },
+                    pastInd:  { p1: 'দিয়েছিলাম', p2: 'দিয়েছিলে', p3: 'দিয়েছিল' },
+                    pastCont: { p1: 'দিচ্ছিলাম', p2: 'দিচ্ছিলে', p3: 'দিচ্ছিল' },
+                    futInd:   { p1: 'দেব',       p2: 'দেবে',      p3: 'দেবে' },
+                    futCont:  { p1: 'দিতে থাকব', p2: 'দিতে থাকবে', p3: 'দিতে থাকবে' },
+                    futPerf:  { p1: 'দিয়ে থাকব', p2: 'দিয়ে থাকবে', p3: 'দিয়ে থাকবে' }
+                }
+            },
+            drive: {
+                v1: 'drive', v2: 'drove', v3: 'driven', ving: 'driving', vs: 'drives',
+                bn: buildBanglaVerb('চালানো', 'চালাই', 'চালাচ্ছ', 'চালিয়', 'চালা')
+            },
+            teach: {
+                v1: 'teach', v2: 'taught', v3: 'taught', ving: 'teaching', vs: 'teaches',
+                bn: buildBanglaVerb('শেখানো', 'শেখাই', 'শেখাচ্ছ', 'শেখায়', 'শেখা')
+            },
+            catch: {
+                v1: 'catch', v2: 'caught', v3: 'caught', ving: 'catching', vs: 'catches',
+                bn: buildBanglaVerb('ধরা', 'ধর', 'ধর', 'ধর', 'ধর')
+            },
+            break: {
+                v1: 'break', v2: 'broke', v3: 'broken', ving: 'breaking', vs: 'breaks',
+                bn: {
+                    meaning: 'ভাঙা',
+                    presInd:  { p1: 'ভাঙি',       p2: 'ভাঙো',       p3: 'ভাঙে' },
+                    presCont: { p1: 'ভাঙছি',     p2: 'ভাঙছো',     p3: 'ভাঙছে' },
+                    presPerf: { p1: 'ভেঙেছি',    p2: 'ভেঙেছো',    p3: 'ভেঙেছে' },
+                    pastInd:  { p1: 'ভেঙেছিলাম', p2: 'ভেঙেছিলে', p3: 'ভেঙেছিল' },
+                    pastCont: { p1: 'ভাঙছিলাম',  p2: 'ভাঙছিলে',  p3: 'ভাঙছিল' },
+                    futInd:   { p1: 'ভাঙব',       p2: 'ভাঙবে',      p3: 'ভাঙবে' },
+                    futCont:  { p1: 'ভাঙতে থাকব', p2: 'ভাঙতে থাকবে', p3: 'ভাঙতে থাকবে' },
+                    futPerf:  { p1: 'ভেঙে থাকব', p2: 'ভেঙে থাকবে', p3: 'ভেঙে থাকবে' }
+                }
+            },
+            build: {
+                v1: 'build', v2: 'built', v3: 'built', ving: 'building', vs: 'builds',
+                bn: buildBanglaVerb('নির্মাণ করা', 'নির্মাণ কর', 'নির্মাণ কর', 'নির্মাণ কর', 'নির্মাণ কর')
+            },
+            open: {
+                v1: 'open', v2: 'opened', v3: 'opened', ving: 'opening', vs: 'opens',
+                bn: {
+                    meaning: 'খোলা',
+                    presInd:  { p1: 'খুলি',       p2: 'খোলো',       p3: 'খোলে' },
+                    presCont: { p1: 'খুলছি',     p2: 'খুলছো',     p3: 'খুলছে' },
+                    presPerf: { p1: 'খুলেছি',    p2: 'খুলেছো',    p3: 'খুলেছে' },
+                    pastInd:  { p1: 'খুলেছিলাম', p2: 'খুলেছিলে', p3: 'খুলেছিল' },
+                    pastCont: { p1: 'খুলছিলাম',  p2: 'খুলছিলে',  p3: 'খুলছিল' },
+                    futInd:   { p1: 'খুলব',       p2: 'খুলবে',      p3: 'খুলবে' },
+                    futCont:  { p1: 'খুলতে থাকব', p2: 'খুলতে থাকবে', p3: 'খুলতে থাকবে' },
+                    futPerf:  { p1: 'খুলে থাকব', p2: 'খুলে থাকবে', p3: 'খুলে থাকবে' }
+                }
+            },
+            close: {
+                v1: 'close', v2: 'closed', v3: 'closed', ving: 'closing', vs: 'closes',
+                bn: buildBanglaVerb('বন্ধ করা', 'বন্ধ কর', 'বন্ধ কর', 'বন্ধ কর', 'বন্ধ কর')
+            },
+            clean: {
+                v1: 'clean', v2: 'cleaned', v3: 'cleaned', ving: 'cleaning', vs: 'cleans',
+                bn: buildBanglaVerb('পরিষ্কার করা', 'পরিষ্কার কর', 'পরিষ্কার কর', 'পরিষ্কার কর', 'পরিষ্কার কর')
+            },
+            swim: {
+                v1: 'swim', v2: 'swam', v3: 'swum', ving: 'swimming', vs: 'swims',
+                bn: buildBanglaVerb('সাঁতার কাটা', 'সাঁতার কাট', 'সাঁতার কাট', 'সাঁতার কাট', 'সাঁতার কাট')
+            },
+            fly: {
+                v1: 'fly', v2: 'flew', v3: 'flown', ving: 'flying', vs: 'flies',
+                bn: {
+                    meaning: 'ওড়া',
+                    presInd:  { p1: 'উড়ি',       p2: 'ওড়ো',       p3: 'ওড়ে' },
+                    presCont: { p1: 'উড়ছি',     p2: 'উড়ছো',     p3: 'উড়ছে' },
+                    presPerf: { p1: 'উড়েছি',    p2: 'উড়েছো',    p3: 'উড়েছে' },
+                    pastInd:  { p1: 'উড়েছিলাম', p2: 'উড়েছিলে', p3: 'উড়েছিল' },
+                    pastCont: { p1: 'উড়ছিলাম',  p2: 'উড়ছিলে',  p3: 'উড়ছিল' },
+                    futInd:   { p1: 'উড়ব',       p2: 'উড়বে',      p3: 'উড়বে' },
+                    futCont:  { p1: 'উড়তে থাকব', p2: 'উড়তে থাকবে', p3: 'উড়তে থাকবে' },
+                    futPerf:  { p1: 'উড়ে থাকব', p2: 'উড়ে থাকবে', p3: 'উড়ে থাকবে' }
+                }
+            },
+            draw: {
+                v1: 'draw', v2: 'drew', v3: 'drawn', ving: 'drawing', vs: 'draws',
+                bn: {
+                    meaning: 'আঁকা',
+                    presInd:  { p1: 'আঁকি',       p2: 'আঁকো',       p3: 'আঁকে' },
+                    presCont: { p1: 'আঁকছি',     p2: 'আঁকছো',     p3: 'আঁকছে' },
+                    presPerf: { p1: 'এঁকেছি',    p2: 'এঁকেছো',    p3: 'এঁকেছে' },
+                    pastInd:  { p1: 'এঁকেছিলাম', p2: 'এঁকেছিলে', p3: 'এঁকেছিল' },
+                    pastCont: { p1: 'আঁকছিলাম',  p2: 'আঁকছিলে',  p3: 'আঁকছিল' },
+                    futInd:   { p1: 'আঁকব',       p2: 'আঁকবে',      p3: 'আঁকবে' },
+                    futCont:  { p1: 'আঁকতে থাকব', p2: 'আঁকতে থাকবে', p3: 'আঁকতে থাকবে' },
+                    futPerf:  { p1: 'এঁকে থাকব', p2: 'এঁকে থাকবে', p3: 'এঁকে থাকবে' }
+                }
+            },
+            know: {
+                v1: 'know', v2: 'knew', v3: 'known', ving: 'knowing', vs: 'knows',
+                bn: {
+                    meaning: 'জানা',
+                    presInd:  { p1: 'জানি',       p2: 'জানো',       p3: 'জানে' },
+                    presCont: { p1: 'জানছি',     p2: 'জানছো',     p3: 'জানছে' },
+                    presPerf: { p1: 'জেনেছি',    p2: 'জেনেছো',    p3: 'জেনেছে' },
+                    pastInd:  { p1: 'জেনেছিলাম', p2: 'জেনেছিলে', p3: 'জেনেছিল' },
+                    pastCont: { p1: 'জানছিলাম',  p2: 'জানছিলে',  p3: 'জানছিল' },
+                    futInd:   { p1: 'জানব',       p2: 'জানবে',      p3: 'জানবে' },
+                    futCont:  { p1: 'জানতে থাকব', p2: 'জানতে থাকবে', p3: 'জানতে থাকবে' },
+                    futPerf:  { p1: 'জেনে থাকব', p2: 'জেনে থাকবে', p3: 'জেনে থাকবে' }
+                }
+            },
+            find: {
+                v1: 'find', v2: 'found', v3: 'found', ving: 'finding', vs: 'finds',
+                bn: buildBanglaVerb('খুঁজে পাওয়া', 'খুঁজে পাই', 'খুঁজে পাচ্ছ', 'খুঁজে পেয়', 'খুঁজে পা')
+            },
+            tell: {
+                v1: 'tell', v2: 'told', v3: 'told', ving: 'telling', vs: 'tells',
+                bn: {
+                    meaning: 'বলা',
+                    presInd:  { p1: 'বলি',       p2: 'বলো',       p3: 'বলে' },
+                    presCont: { p1: 'বলছি',     p2: 'বলছো',     p3: 'বলছে' },
+                    presPerf: { p1: 'বলেছি',    p2: 'বলেছো',    p3: 'বলেছে' },
+                    pastInd:  { p1: 'বলেছিলাম', p2: 'বলেছিলে', p3: 'বলেছিল' },
+                    pastCont: { p1: 'বলছিলাম',  p2: 'বলছিলে',  p3: 'বলছিল' },
+                    futInd:   { p1: 'বলব',       p2: 'বলবে',      p3: 'বলবে' },
+                    futCont:  { p1: 'বলতে থাকব', p2: 'বলতে থাকবে', p3: 'বলতে থাকবে' },
+                    futPerf:  { p1: 'বলে থাকব', p2: 'বলে থাকবে', p3: 'বলে থাকবে' }
+                }
+            }
+        };
+
+        // Fix custom stem helper exceptions (drive, teach, find)
+        VERB_DB.drive.bn = {
+            meaning: 'চালানো',
+            presInd:  { p1: 'চালাই',       p2: 'চালাও',       p3: 'চালায়' },
+            presCont: { p1: 'চালাচ্ছি',    p2: 'চালাচ্ছো',    p3: 'চালাচ্ছে' },
+            presPerf: { p1: 'চালিয়েছি',   p2: 'চালিয়েছো',   p3: 'চালিয়েছে' },
+            pastInd:  { p1: 'চালিয়েছিলাম', p2: 'চালিয়েছিলে', p3: 'চালিয়েছিল' },
+            pastCont: { p1: 'চালাচ্ছিলাম', p2: 'চালাচ্ছিলে', p3: 'চালাচ্ছিল' },
+            futInd:   { p1: 'চালাব',       p2: 'চালাবে',      p3: 'চালাবে' },
+            futCont:  { p1: 'চালাতে থাকব', p2: 'চালাতে থাকবে', p3: 'চালাতে থাকবে' },
+            futPerf:  { p1: 'চালিয়ে থাকব', p2: 'চালিয়ে থাকবে', p3: 'চালিয়ে থাকবে' }
+        };
+        VERB_DB.teach.bn = {
+            meaning: 'শেখানো',
+            presInd:  { p1: 'শেখাই',       p2: 'শেখাও',       p3: 'শেখায়' },
+            presCont: { p1: 'শেখাচ্ছি',    p2: 'শেখাচ্ছো',    p3: 'শেখাচ্ছে' },
+            presPerf: { p1: 'শিখিয়েছি',   p2: 'শিখিয়েছো',   p3: 'শিখিয়েছে' },
+            pastInd:  { p1: 'শিখিয়েছিলাম', p2: 'শিখিয়েছিলে', p3: 'শিখিয়েছিল' },
+            pastCont: { p1: 'শেখাচ্ছিলাম', p2: 'শেখাচ্ছিলে', p3: 'শেখাচ্ছিল' },
+            futInd:   { p1: 'শেখাব',       p2: 'শেখাবে',      p3: 'শেখাবে' },
+            futCont:  { p1: 'শেখাতে থাকব', p2: 'শেখাতে থাকবে', p3: 'শেখাতে থাকবে' },
+            futPerf:  { p1: 'শিখিয়ে থাকব', p2: 'শিখিয়ে থাকবে', p3: 'শিখিয়ে থাকবে' }
+        };
+        VERB_DB.find.bn = {
+            meaning: 'খুঁজে পাওয়া',
+            presInd:  { p1: 'খুঁজে পাই',       p2: 'খুঁজে পাও',       p3: 'খুঁজে পায়' },
+            presCont: { p1: 'খুঁজে পাচ্ছি',    p2: 'খুঁজে পাচ্ছো',    p3: 'খুঁজে পাচ্ছে' },
+            presPerf: { p1: 'খুঁজে পেয়েছি',   p2: 'খুঁজে পেয়েছো',   p3: 'খুঁজে পেয়েছে' },
+            pastInd:  { p1: 'খুঁজে পেয়েছিলাম', p2: 'খুঁজে পেয়েছিলে', p3: 'খুঁজে পেয়েছিল' },
+            pastCont: { p1: 'খুঁজে পাচ্ছিলাম', p2: 'খুঁজে পাচ্ছিলে', p3: 'খুঁজে পাচ্ছিল' },
+            futInd:   { p1: 'খুঁজে পাব',       p2: 'খুঁজে পাবে',      p3: 'খুঁজে পাবে' },
+            futCont:  { p1: 'খুঁজে পেতে থাকব', p2: 'খুঁজে পেতে থাকবে', p3: 'খুঁজে পেতে থাকবে' },
+            futPerf:  { p1: 'খুঁজে পেয়ে থাকব', p2: 'খুঁজে পেয়ে থাকবে', p3: 'খুঁজে পেয়ে থাকবে' }
+        };
+
+        // Subject Dictionary (English -> Bangla + Person/Number grammar traits)
+        const SUBJECT_DB = {
+            'i':        { en: 'I',        bn: 'আমি',      person: 'p1', is3rdSing: false, auxPres: 'am',  auxPast: 'was',  haveForm: 'have' },
+            'we':       { en: 'We',       bn: 'আমরা',     person: 'p1', is3rdSing: false, auxPres: 'are', auxPast: 'were', haveForm: 'have' },
+            'you':      { en: 'You',      bn: 'তুমি',     person: 'p2', is3rdSing: false, auxPres: 'are', auxPast: 'were', haveForm: 'have' },
+            'he':       { en: 'He',       bn: 'সে',       person: 'p3', is3rdSing: true,  auxPres: 'is',  auxPast: 'was',  haveForm: 'has'  },
+            'she':      { en: 'She',      bn: 'সে',       person: 'p3', is3rdSing: true,  auxPres: 'is',  auxPast: 'was',  haveForm: 'has'  },
+            'it':       { en: 'It',       bn: 'এটি',      person: 'p3', is3rdSing: true,  auxPres: 'is',  auxPast: 'was',  haveForm: 'has'  },
+            'they':     { en: 'They',     bn: 'তারা',     person: 'p3', is3rdSing: false, auxPres: 'are', auxPast: 'were', haveForm: 'have' },
+            'rahim':    { en: 'Rahim',    bn: 'রহিম',     person: 'p3', is3rdSing: true,  auxPres: 'is',  auxPast: 'was',  haveForm: 'has'  },
+            'karim':    { en: 'Karim',    bn: 'করিম',     person: 'p3', is3rdSing: true,  auxPres: 'is',  auxPast: 'was',  haveForm: 'has'  },
+            'mina':     { en: 'Mina',     bn: 'মিনা',     person: 'p3', is3rdSing: true,  auxPres: 'is',  auxPast: 'was',  haveForm: 'has'  },
+            'sara':     { en: 'Sara',     bn: 'সারা',     person: 'p3', is3rdSing: true,  auxPres: 'is',  auxPast: 'was',  haveForm: 'has'  },
+            'john':     { en: 'John',     bn: 'জন',       person: 'p3', is3rdSing: true,  auxPres: 'is',  auxPast: 'was',  haveForm: 'has'  },
+            'the boy':  { en: 'The boy',  bn: 'বালকটি',   person: 'p3', is3rdSing: true,  auxPres: 'is',  auxPast: 'was',  haveForm: 'has'  },
+            'the girl': { en: 'The girl', bn: 'বালিকাটি', person: 'p3', is3rdSing: true,  auxPres: 'is',  auxPast: 'was',  haveForm: 'has'  },
+            'boys':     { en: 'Boys',     bn: 'বালকেরা',  person: 'p3', is3rdSing: false, auxPres: 'are', auxPast: 'were', haveForm: 'have' },
+            'girls':    { en: 'Girls',    bn: 'বালিকারা', person: 'p3', is3rdSing: false, auxPres: 'are', auxPast: 'were', haveForm: 'have' },
+            'birds':    { en: 'Birds',    bn: 'পাখিরা',   person: 'p3', is3rdSing: false, auxPres: 'are', auxPast: 'were', haveForm: 'have' },
+            'mother':   { en: 'Mother',   bn: 'মা',       person: 'p3', is3rdSing: true,  auxPres: 'is',  auxPast: 'was',  haveForm: 'has'  },
+            'father':   { en: 'Father',   bn: 'বাবা',     person: 'p3', is3rdSing: true,  auxPres: 'is',  auxPast: 'was',  haveForm: 'has'  },
+            'teacher':  { en: 'Teacher',  bn: 'শিক্ষক',   person: 'p3', is3rdSing: true,  auxPres: 'is',  auxPast: 'was',  haveForm: 'has'  },
+            'students': { en: 'Students', bn: 'ছাত্রছাত্রীরা', person: 'p3', is3rdSing: false, auxPres: 'are', auxPast: 'were', haveForm: 'have' }
+        };
+
+        // Common Objects / Complements English -> Bangla Dictionary
+        const OBJECT_DB = {
+            'rice': 'ভাত',
+            'bread': 'রুটি',
+            'water': 'পানি',
+            'tea': 'চা',
+            'coffee': 'কফি',
+            'milk': 'দুধ',
+            'food': 'খাবার',
+            'an apple': 'একটি আপেল',
+            'apple': 'আপেল',
+            'a mango': 'একটি আম',
+            'mango': 'আম',
+            'football': 'ফুটবল',
+            'cricket': 'ক্রিকেট',
+            'chess': 'দাবা',
+            'a game': 'একটি খেলা',
+            'games': 'খেলাধুলা',
+            'a letter': 'একটি চিঠি',
+            'letters': 'চিঠি',
+            'an email': 'একটি ইমেইল',
+            'a book': 'একটি বই',
+            'books': 'বই',
+            'the newspaper': 'সংবাদপত্র',
+            'newspaper': 'সংবাদপত্র',
+            'a story': 'একটি গল্প',
+            'a poem': 'একটি কবিতা',
+            'to school': 'স্কুলে',
+            'school': 'স্কুলে',
+            'to college': 'কলেজে',
+            'to university': 'বিশ্ববিদ্যালয়ে',
+            'to market': 'বাজারে',
+            'to the market': 'বাজারে',
+            'to dhaka': 'ঢাকায়',
+            'home': 'বাড়ি',
+            'to home': 'বাড়িতে',
+            'to office': 'অফিসে',
+            'a song': 'একটি গান',
+            'music': 'সংগীত',
+            'a picture': 'একটি ছবি',
+            'tv': 'টিভি',
+            'television': 'টেলিভিশন',
+            'a movie': 'একটি সিনেমা',
+            'english': 'ইংরেজি',
+            'bangla': 'বাংলা',
+            'math': 'গণিত',
+            'lessons': 'পড়া',
+            'my lesson': 'আমার পড়া',
+            'his lesson': 'তার পড়া',
+            'her lesson': 'তার পড়া',
+            'a car': 'একটি গাড়ি',
+            'car': 'গাড়ি',
+            'a bicycle': 'একটি সাইকেল',
+            'a house': 'একটি বাড়ি',
+            'the door': 'দরজাটি',
+            'the window': 'জানালাটি',
+            'the room': 'ঘরটি',
+            'me': 'আমাকে',
+            'you': 'তোমাকে',
+            'him': 'তাকে',
+            'her': 'তাকে',
+            'us': 'আমাদেরকে',
+            'them': 'তাদেরকে',
+            'the poor': 'দরিদ্রদেরকে',
+            'in the river': 'নদীতে',
+            'in the pond': 'পুকুরে',
+            'in the sky': 'আকাশে',
+            'in the field': 'মাঠে',
+            'every day': 'প্রতিদিন',
+            'daily': 'প্রতিদিন',
+            'hard': 'কঠোর পরিশ্রম',
+            'fast': 'দ্রুত'
+        };
+
+        /**
+         * Simple phonetic English-to-Bangla transliterator for proper nouns / unknown words
+         */
+        function transliterateToBangla(text) {
+            if (!text) return '';
+            const lower = text.toLowerCase().trim();
+            if (OBJECT_DB[lower]) return OBJECT_DB[lower];
+            if (SUBJECT_DB[lower]) return SUBJECT_DB[lower].bn;
+
+            // Multi-word phrase check (e.g., "a red car" -> word-by-word lookup + transliteration)
+            const words = lower.split(/\s+/);
+            if (words.length > 1) {
+                // Check if entire phrase minus leading 'a'/'an'/'the' is in OBJECT_DB
+                const stripped = lower.replace(/^(a|an|the)\s+/, '');
+                if (OBJECT_DB[stripped]) {
+                    const prefix = lower.startsWith('a ') || lower.startsWith('an ') ? 'একটি ' : '';
+                    return prefix + OBJECT_DB[stripped];
+                }
+                return words.map(w => {
+                    if (w === 'a' || w === 'an') return 'একটি';
+                    if (w === 'the') return '';
+                    if (OBJECT_DB[w]) return OBJECT_DB[w];
+                    return transliterateSingleWord(w);
+                }).filter(Boolean).join(' ');
+            }
+            return transliterateSingleWord(lower);
+        }
+
+        function transliterateSingleWord(word) {
+            let w = word.toLowerCase();
+            const map = [
+                ['sh', 'শ'], ['ch', 'চ'], ['th', 'থ'], ['ph', 'ফ'], ['kh', 'খ'], ['gh', 'ঘ'], ['bh', 'ভ'], ['dh', 'ধ'],
+                ['ng', 'ং'], ['ee', 'ই'], ['oo', 'উ'], ['ai', 'াই'], ['ou', 'াউ'],
+                ['a', 'া'], ['b', 'ব'], ['c', 'ক'], ['d', 'ড'], ['e', 'ে'], ['f', 'ফ'], ['g', 'গ'], ['h', 'হ'],
+                ['i', 'ি'], ['j', 'জ'], ['k', 'ক'], ['l', 'ল'], ['m', 'ম'], ['n', 'ন'], ['o', 'ো'], ['p', 'প'],
+                ['q', 'ক'], ['r', 'র'], ['s', 'স'], ['t', 'ট'], ['u', 'ু'], ['v', 'ভ'], ['w', 'ওয়'], ['x', 'ক্স'],
+                ['y', 'য়'], ['z', 'জ']
+            ];
+            let res = '';
+            let i = 0;
+            while (i < w.length) {
+                let matched = false;
+                // Handle initial vowels cleanly
+                if (i === 0) {
+                    const initVowels = { 'a': 'আ', 'e': 'এ', 'i': 'ই', 'o': 'ও', 'u': 'উ' };
+                    if (initVowels[w[i]]) {
+                        res += initVowels[w[i]];
+                        i++;
+                        continue;
+                    }
+                }
+                for (const [en, bn] of map) {
+                    if (w.startsWith(en, i)) {
+                        res += bn;
+                        i += en.length;
+                        matched = true;
+                        break;
+                    }
+                }
+                if (!matched) {
+                    res += w[i];
+                    i++;
+                }
+            }
+            return res;
+        }
+
+        /**
+         * Morphological Verb Resolver:
+         * Accepts ANY form of an English verb (V1, V2, V3, V-ing, V-s/es)
+         * and returns a complete conjugation object { v1, v2, v3, ving, vs, bn }.
+         */
+        function resolveVerb(rawToken) {
+            const token = rawToken.toLowerCase().replace(/[^a-z]/g, '');
+            if (!token) return VERB_DB.do;
+
+            // 1. Direct match in VERB_DB across any form (v1, v2, v3, ving, vs)
+            for (const key in VERB_DB) {
+                const entry = VERB_DB[key];
+                if (
+                    entry.v1 === token ||
+                    entry.v2 === token ||
+                    entry.v3 === token ||
+                    entry.ving === token ||
+                    entry.vs === token
+                ) {
+                    return entry;
+                }
+            }
+
+            // 2. Reverse-engineer base V1 for unknown regular verbs
+            let v1 = token;
+            if (token.endsWith('ing') && token.length > 4) {
+                let stem = token.slice(0, -3);
+                // e.g., running -> run, stopping -> stop
+                if (stem.length >= 3 && stem[stem.length - 1] === stem[stem.length - 2]) {
+                    stem = stem.slice(0, -1);
+                } else if (!/[aeiou]/.test(stem.slice(-1)) && ['k', 'v', 'z', 'c', 'g', 't', 'd', 'r', 's', 'l', 'm', 'n', 'p'].includes(stem.slice(-1))) {
+                    // Check if adding 'e' matches a known verb (e.g., writing -> write)
+                    if (VERB_DB[stem + 'e']) return VERB_DB[stem + 'e'];
+                }
+                v1 = stem;
+            } else if (token.endsWith('ied') && token.length > 4) {
+                v1 = token.slice(0, -3) + 'y';
+            } else if (token.endsWith('ed') && token.length > 3) {
+                let stem = token.slice(0, -2);
+                if (stem.length >= 3 && stem[stem.length - 1] === stem[stem.length - 2]) {
+                    stem = stem.slice(0, -1);
+                } else if (VERB_DB[stem + 'e']) {
+                    return VERB_DB[stem + 'e'];
+                }
+                v1 = stem;
+            } else if (token.endsWith('ies') && token.length > 4) {
+                v1 = token.slice(0, -3) + 'y';
+            } else if (token.endsWith('es') && token.length > 3 && /(ch|sh|ss|x|o)es$/.test(token)) {
+                v1 = token.slice(0, -2);
+            } else if (token.endsWith('s') && token.length > 2 && !token.endsWith('ss')) {
+                v1 = token.slice(0, -1);
+            }
+
+            // Re-check VERB_DB with derived v1
+            if (VERB_DB[v1]) return VERB_DB[v1];
+
+            // 3. Construct regular English forms + natural Bangla fallback ("কাজটি করা" style)
+            const v2 = v1.endsWith('e') ? `${v1}d` : (v1.endsWith('y') && !/[aeiou]y$/.test(v1) ? `${v1.slice(0, -1)}ied` : `${v1}ed`);
+            const v3 = v2;
+            const ving = v1.endsWith('e') && !v1.endsWith('ee') ? `${v1.slice(0, -1)}ing` : `${v1}ing`;
+            const vs = /(ch|sh|s|x|z|o)$/.test(v1) ? `${v1}es` : (v1.endsWith('y') && !/[aeiou]y$/.test(v1) ? `${v1.slice(0, -1)}ies` : `${v1}s`);
+
+            const bnRoot = transliterateSingleWord(v1);
+            return {
+                v1, v2, v3, ving, vs,
+                bn: buildBanglaVerb(`${bnRoot} করা`, `${bnRoot} কর`, `${bnRoot} কর`, `${bnRoot} কর`, `${bnRoot} কর`)
+            };
+        }
+
+        /**
+         * Intelligent Sentence Parser:
+         * Splits an input sentence into { subject, verb, object, detectedTense }
+         */
+        function parseSentence(rawInput) {
+            const cleaned = rawInput.trim().replace(/[.!?]+$/, '').replace(/\s+/g, ' ');
+            if (!cleaned) return null;
+
+            const tokens = cleaned.split(' ');
+            const auxWords = new Set(['am', 'is', 'are', 'was', 'were', 'have', 'has', 'had', 'will', 'shall', 'been', 'do', 'does', 'did']);
+
+            // 1. Identify Subject (support 1-word or 2-word subjects like "The boy", "My friend")
+            let subjTokens = [];
+            let restStartIdx = 1;
+
+            const twoWordSubj = tokens.length >= 2 ? `${tokens[0]} ${tokens[1]}`.toLowerCase() : '';
+            if (SUBJECT_DB[twoWordSubj] || (['the', 'a', 'an', 'my', 'his', 'her', 'our', 'their'].includes(tokens[0].toLowerCase()) && tokens.length >= 3)) {
+                subjTokens = [tokens[0], tokens[1]];
+                restStartIdx = 2;
+            } else {
+                subjTokens = [tokens[0]];
+                restStartIdx = 1;
+            }
+
+            const rawSubjStr = subjTokens.join(' ');
+            const lowerSubj = rawSubjStr.toLowerCase();
+            let subjectObj;
+
+            if (SUBJECT_DB[lowerSubj]) {
+                subjectObj = { ...SUBJECT_DB[lowerSubj] };
+            } else {
+                // Infer singular vs plural for custom nouns
+                const lastWord = subjTokens[subjTokens.length - 1].toLowerCase();
+                const isPlural = lastWord.endsWith('s') && !lastWord.endsWith('ss');
+                const capSubj = rawSubjStr.charAt(0).toUpperCase() + rawSubjStr.slice(1);
+                subjectObj = {
+                    en: capSubj,
+                    bn: transliterateToBangla(rawSubjStr),
+                    person: 'p3',
+                    is3rdSing: !isPlural,
+                    auxPres: isPlural ? 'are' : 'is',
+                    auxPast: isPlural ? 'were' : 'was',
+                    haveForm: isPlural ? 'have' : 'has'
+                };
+            }
+
+            // 2. Separate Auxiliaries, Main Verb, and Object/Complement
+            const remaining = tokens.slice(restStartIdx);
+            const foundAux = [];
+            let mainVerbToken = '';
+            let objTokens = [];
+
+            if (remaining.length === 0) {
+                mainVerbToken = 'do';
+            } else {
+                let idx = 0;
+                while (idx < remaining.length && auxWords.has(remaining[idx].toLowerCase()) && idx < remaining.length - 1) {
+                    foundAux.push(remaining[idx].toLowerCase());
+                    idx++;
+                }
+                mainVerbToken = remaining[idx] || 'do';
+                objTokens = remaining.slice(idx + 1);
+            }
+
+            // Strip trailing time markers often used in Perfect Continuous (e.g., "for two hours", "since morning") if needed, or preserve cleanly
+            const verbObj = resolveVerb(mainVerbToken);
+            const rawObject = objTokens.join(' ').trim();
+            const bnObject = rawObject ? transliterateToBangla(rawObject) : '';
+
+            // 3. Detect Input Tense (for user feedback badge)
+            let detectedTense = 'Present Indefinite';
+            const auxStr = foundAux.join(' ');
+            const lowVerb = mainVerbToken.toLowerCase();
+
+            if (auxStr.includes('will') || auxStr.includes('shall')) {
+                if (auxStr.includes('have') && auxStr.includes('been')) detectedTense = 'Future Perfect Continuous';
+                else if (auxStr.includes('have')) detectedTense = 'Future Perfect';
+                else if (auxStr.includes('be')) detectedTense = 'Future Continuous';
+                else detectedTense = 'Future Indefinite';
+            } else if (auxStr.includes('had')) {
+                detectedTense = auxStr.includes('been') ? 'Past Perfect Continuous' : 'Past Perfect';
+            } else if (auxStr.includes('have') || auxStr.includes('has')) {
+                detectedTense = auxStr.includes('been') ? 'Present Perfect Continuous' : 'Present Perfect';
+            } else if (auxStr === 'was' || auxStr === 'were') {
+                detectedTense = 'Past Continuous';
+            } else if (auxStr === 'am' || auxStr === 'is' || auxStr === 'are') {
+                detectedTense = 'Present Continuous';
+            } else if (lowVerb === verbObj.v2 && verbObj.v1 !== verbObj.v2) {
+                detectedTense = 'Past Indefinite';
+            } else {
+                detectedTense = 'Present Indefinite';
+            }
+
+            return {
+                subject: subjectObj,
+                verb: verbObj,
+                objectEn: rawObject,
+                objectBn: bnObject,
+                detectedTense
+            };
+        }
+
+        /**
+         * ============================================================================
+         * 2. 12-TENSE GENERATOR (ENGLISH & BANGLA)
+         * ============================================================================
+         */
+        function generateAll12Tenses(parsed) {
+            const { subject, verb, objectEn, objectBn } = parsed;
+            const S = subject.en;
+            const S_bn = subject.bn;
+            const p = subject.person; // 'p1' | 'p2' | 'p3'
+            const objEnSuffix = objectEn ? ` ${objectEn}` : '';
+            const objBnMid = objectBn ? `${objectBn} ` : '';
+
+            // Helper to format clean English sentence with capitalization and period
+            const fmtEn = (str) => {
+                const trimmed = str.replace(/\s+/g, ' ').trim();
+                return trimmed.charAt(0).toUpperCase() + trimmed.slice(1) + '.';
+            };
+            // Helper to format clean Bangla sentence with Dari (।)
+            const fmtBn = (str) => {
+                return str.replace(/\s+/g, ' ').trim() + '।';
+            };
+
+            const presIndVerb = subject.is3rdSing ? verb.vs : verb.v1;
+
+            return [
+                // ================= PRESENT TENSES (1 - 4) =================
+                {
+                    id: 1,
+                    category: 'present',
+                    nameEn: 'Present Indefinite',
+                    nameBn: 'সাধারণ বর্তমান কাল',
+                    structure: 'Subject + V1 (s/es) + Object',
+                    en: fmtEn(`${S} ${presIndVerb}${objEnSuffix}`),
+                    bn: fmtBn(`${S_bn} ${objBnMid}${verb.bn.presInd[p]}`)
+                },
+                {
+                    id: 2,
+                    category: 'present',
+                    nameEn: 'Present Continuous',
+                    nameBn: 'ঘটমান বর্তমান কাল',
+                    structure: 'Subject + am/is/are + V-ing + Object',
+                    en: fmtEn(`${S} ${subject.auxPres} ${verb.ving}${objEnSuffix}`),
+                    bn: fmtBn(`${S_bn} ${objBnMid}${verb.bn.presCont[p]}`)
+                },
+                {
+                    id: 3,
+                    category: 'present',
+                    nameEn: 'Present Perfect',
+                    nameBn: 'পুরাঘটিত বর্তমান কাল',
+                    structure: 'Subject + have/has + V3 + Object',
+                    en: fmtEn(`${S} ${subject.haveForm} ${verb.v3}${objEnSuffix}`),
+                    bn: fmtBn(`${S_bn} ${objBnMid}${verb.bn.presPerf[p]}`)
+                },
+                {
+                    id: 4,
+                    category: 'present',
+                    nameEn: 'Present Perfect Continuous',
+                    nameBn: 'পুরাঘটিত ঘটমান বর্তমান কাল',
+                    structure: 'Subject + have/has been + V-ing + Object + for/since...',
+                    en: fmtEn(`${S} ${subject.haveForm} been ${verb.ving}${objEnSuffix} for an hour`),
+                    bn: fmtBn(`${S_bn} এক ঘণ্টা ধরে ${objBnMid}${verb.bn.presCont[p]}`)
+                },
+
+                // ================= PAST TENSES (5 - 8) =================
+                {
+                    id: 5,
+                    category: 'past',
+                    nameEn: 'Past Indefinite',
+                    nameBn: 'সাধারণ অতীত কাল',
+                    structure: 'Subject + V2 + Object',
+                    en: fmtEn(`${S} ${verb.v2}${objEnSuffix}`),
+                    bn: fmtBn(`${S_bn} ${objBnMid}${verb.bn.pastInd[p]}`)
+                },
+                {
+                    id: 6,
+                    category: 'past',
+                    nameEn: 'Past Continuous',
+                    nameBn: 'ঘটমান অতীত কাল',
+                    structure: 'Subject + was/were + V-ing + Object',
+                    en: fmtEn(`${S} ${subject.auxPast} ${verb.ving}${objEnSuffix}`),
+                    bn: fmtBn(`${S_bn} ${objBnMid}${verb.bn.pastCont[p]}`)
+                },
+                {
+                    id: 7,
+                    category: 'past',
+                    nameEn: 'Past Perfect',
+                    nameBn: 'পুরাঘটিত অতীত কাল',
+                    structure: 'Subject + had + V3 + Object',
+                    en: fmtEn(`${S} had ${verb.v3}${objEnSuffix}`),
+                    bn: fmtBn(`${S_bn} ${objBnMid}${verb.bn.pastInd[p]}`)
+                },
+                {
+                    id: 8,
+                    category: 'past',
+                    nameEn: 'Past Perfect Continuous',
+                    nameBn: 'পুরাঘটিত ঘটমান অতীত কাল',
+                    structure: 'Subject + had been + V-ing + Object + for/since...',
+                    en: fmtEn(`${S} had been ${verb.ving}${objEnSuffix} for an hour`),
+                    bn: fmtBn(`${S_bn} এক ঘণ্টা ধরে ${objBnMid}${verb.bn.pastCont[p]}`)
+                },
+
+                // ================= FUTURE TENSES (9 - 12) =================
+                {
+                    id: 9,
+                    category: 'future',
+                    nameEn: 'Future Indefinite',
+                    nameBn: 'সাধারণ ভবিষ্যৎ কাল',
+                    structure: 'Subject + will + V1 + Object',
+                    en: fmtEn(`${S} will ${verb.v1}${objEnSuffix}`),
+                    bn: fmtBn(`${S_bn} ${objBnMid}${verb.bn.futInd[p]}`)
+                },
+                {
+                    id: 10,
+                    category: 'future',
+                    nameEn: 'Future Continuous',
+                    nameBn: 'ঘটমান ভবিষ্যৎ কাল',
+                    structure: 'Subject + will be + V-ing + Object',
+                    en: fmtEn(`${S} will be ${verb.ving}${objEnSuffix}`),
+                    bn: fmtBn(`${S_bn} ${objBnMid}${verb.bn.futCont[p]}`)
+                },
+                {
+                    id: 11,
+                    category: 'future',
+                    nameEn: 'Future Perfect',
+                    nameBn: 'পুরাঘটিত ভবিষ্যৎ কাল',
+                    structure: 'Subject + will have + V3 + Object',
+                    en: fmtEn(`${S} will have ${verb.v3}${objEnSuffix}`),
+                    bn: fmtBn(`${S_bn} ${objBnMid}${verb.bn.futPerf[p]}`)
+                },
+                {
+                    id: 12,
+                    category: 'future',
+                    nameEn: 'Future Perfect Continuous',
+                    nameBn: 'পুরাঘটিত ঘটমান ভবিষ্যৎ কাল',
+                    structure: 'Subject + will have been + V-ing + Object + for/since...',
+                    en: fmtEn(`${S} will have been ${verb.ving}${objEnSuffix} for an hour`),
+                    bn: fmtBn(`${S_bn} এক ঘণ্টা ধরে ${objBnMid}${verb.bn.futCont[p]}`)
+                }
+            ];
+        }
+
+        /**
+         * ============================================================================
+         * 3. UI RENDERING, CLIPBOARD & INTERACTION HANDLERS
+         * ============================================================================
+         */
+        let currentTenses = [];
+        let activeFilter = 'all';
+        let showFormulas = true;
+
+        const inputEl = document.getElementById('sentence-input');
+        const convertBtn = document.getElementById('convert-btn');
+        const clearBtn = document.getElementById('clear-input-btn');
+        const copyAllBtn = document.getElementById('copy-all-btn');
+        const resultsContainer = document.getElementById('tense-results-container');
+        const toggleFormulasEl = document.getElementById('toggle-formulas');
+
+        // Safe Clipboard Copy Function (Uses execCommand fallback for iframe compatibility)
+        function copyTextToClipboard(text, label = 'Copied to clipboard!') {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast(label);
+            } catch (err) {
+                showToast('Unable to copy text.');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        // Custom Non-Blocking Toast Notification
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'bg-slate-900 text-white text-xs sm:text-sm font-semibold px-4 py-3 rounded-2xl shadow-xl border border-slate-700/80 flex items-center gap-2 transition-all duration-300 translate-y-2 opacity-0';
+            toast.innerHTML = `
+                <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 2400);
+        }
+
+        // Update Parsed Metadata Chips
+        function updateParsedSummary(parsed) {
+            document.getElementById('parsed-subject').textContent = parsed.subject.en;
+            document.getElementById('parsed-subject-bn').textContent = `(${parsed.subject.bn})`;
+            if (window.highlightAuxColumn) window.highlightAuxColumn(parsed.subject);
+
+            document.getElementById('parsed-verb').textContent = `${parsed.verb.v1} / ${parsed.verb.v2} / ${parsed.verb.v3}`;
+            document.getElementById('parsed-verb-bn').textContent = `(${parsed.verb.bn.meaning})`;
+
+            const objBadge = document.getElementById('parsed-object-badge');
+            if (parsed.objectEn) {
+                objBadge.classList.remove('hidden');
+                document.getElementById('parsed-object').textContent = parsed.objectEn;
+                document.getElementById('parsed-object-bn').textContent = `(${parsed.objectBn})`;
+            } else {
+                objBadge.classList.add('hidden');
+            }
+
+            document.getElementById('detected-tense-label').textContent = parsed.detectedTense;
+        }
+
+        // Render Tense Cards Grouped by Category
+        function renderTenses() {
+            const categories = [
+                {
+                    key: 'present',
+                    titleEn: 'Present Tense',
+                    titleBn: 'বর্তমান কাল',
+                    accent: 'indigo',
+                    badgeBg: 'bg-indigo-100 text-indigo-700',
+                    borderHover: 'hover:border-indigo-300'
+                },
+                {
+                    key: 'past',
+                    titleEn: 'Past Tense',
+                    titleBn: 'অতীত কাল',
+                    accent: 'amber',
+                    badgeBg: 'bg-amber-100 text-amber-800',
+                    borderHover: 'hover:border-amber-300'
+                },
+                {
+                    key: 'future',
+                    titleEn: 'Future Tense',
+                    titleBn: 'ভবিষ্যৎ কাল',
+                    accent: 'emerald',
+                    badgeBg: 'bg-emerald-100 text-emerald-800',
+                    borderHover: 'hover:border-emerald-300'
+                }
+            ];
+
+            const visibleCategories = activeFilter === 'all'
+                ? categories
+                : categories.filter(c => c.key === activeFilter);
+
+            resultsContainer.innerHTML = visibleCategories.map(cat => {
+                const items = currentTenses.filter(t => t.category === cat.key);
+                const cardsHtml = items.map(item => `
+                    <article class="group bg-white rounded-2xl border border-slate-200/90 ${cat.borderHover} p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between">
+                        <div>
+                            <!-- Card Top Row: Number, Tense Title (EN & BN), Copy Button -->
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-6 h-6 rounded-lg ${cat.badgeBg} text-xs font-black flex items-center justify-center shrink-0">
+                                            ${item.id}
+                                        </span>
+                                        <h4 class="font-en font-bold text-slate-900 text-base leading-snug">
+                                            ${item.nameEn}
+                                        </h4>
+                                    </div>
+                                    <p class="font-bn text-xs font-medium text-slate-500 mt-1 pl-8">
+                                        ${item.nameBn}
+                                    </p>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onclick="copySingleTense(${item.id})"
+                                    title="Copy English & Bangla"
+                                    class="p-2 rounded-xl text-slate-400 hover:text-brand-600 hover:bg-brand-50 active:scale-95 transition-all cursor-pointer shrink-0"
+                                >
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Grammatical Formula Pill -->
+                            <div class="${showFormulas ? 'block' : 'hidden'} mb-4 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs font-mono text-slate-600 overflow-x-auto">
+                                ${item.structure}
+                            </div>
+                        </div>
+
+                        <!-- Converted English & Bangla Sentences -->
+                        <div class="space-y-2.5 pt-2 border-t border-slate-100">
+                            <div class="p-3 rounded-xl bg-slate-50/80 group-hover:bg-brand-50/40 transition-colors">
+                                <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">English (Lato)</span>
+                                <p class="font-en text-base sm:text-[17px] font-bold text-slate-900 leading-relaxed">
+                                    ${item.en}
+                                </p>
+                            </div>
+
+                            <div class="p-3 rounded-xl bg-indigo-50/40 group-hover:bg-indigo-50/70 transition-colors">
+                                <span class="block text-[10px] font-bold uppercase tracking-wider text-indigo-400 mb-0.5">বাংলা (Noto Sans Bengali)</span>
+                                <p class="font-bn text-base sm:text-[17px] font-semibold text-slate-800 leading-relaxed">
+                                    ${item.bn}
+                                </p>
+                            </div>
+                        </div>
+                    </article>
+                `).join('');
+
+                return `
+                    <section>
+                        <div class="flex items-center gap-3 mb-4">
+                            <h3 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight">${cat.titleEn}</h3>
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-bn font-semibold ${cat.badgeBg}">
+                                ${cat.titleBn}
+                            </span>
+                            <div class="flex-1 h-px bg-slate-200/80"></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+                            ${cardsHtml}
+                        </div>
+                    </section>
+                `;
+            }).join('');
+        }
+
+        // Global handler for single card copy
+        window.copySingleTense = function(id) {
+            const item = currentTenses.find(t => t.id === id);
+            if (!item) return;
+            const formatted = `${item.nameEn} (${item.nameBn}):\nEN: ${item.en}\nBN: ${item.bn}`;
+            copyTextToClipboard(formatted, `Copied ${item.nameEn}!`);
+        };
+
+        // Main conversion trigger
+        function handleConvert() {
+            const val = inputEl.value.trim();
+            if (!val) {
+                showToast('Please enter an English sentence first.');
+                inputEl.focus();
+                return;
+            }
+            const parsed = parseSentence(val);
+            if (!parsed) return;
+
+            updateParsedSummary(parsed);
+            currentTenses = generateAll12Tenses(parsed);
+            renderTenses();
+        }
+
+        // Event Listeners
+        convertBtn.addEventListener('click', handleConvert);
+
+        inputEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleConvert();
+            }
+        });
+
+        // Live conversion as user types (debounced slightly for smooth UX)
+        let typingTimer;
+        inputEl.addEventListener('input', () => {
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => {
+                if (inputEl.value.trim().length > 1) {
+                    handleConvert();
+                }
+            }, 220);
+        });
+
+        clearBtn.addEventListener('click', () => {
+            inputEl.value = '';
+            inputEl.focus();
+        });
+
+        // Quick-fill example chips
+        document.querySelectorAll('.example-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                inputEl.value = chip.getAttribute('data-example');
+                handleConvert();
+            });
+        });
+
+        // Filter tabs (All / Present / Past / Future)
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.filter-tab').forEach(t => {
+                    t.classList.remove('active', 'bg-white', 'text-brand-700', 'shadow-sm');
+                    t.classList.add('text-slate-600');
+                });
+                tab.classList.add('active', 'bg-white', 'text-brand-700', 'shadow-sm');
+                tab.classList.remove('text-slate-600');
+
+                activeFilter = tab.getAttribute('data-filter');
+                renderTenses();
+            });
+        });
+
+        // Toggle structure formulas
+        toggleFormulasEl.addEventListener('change', (e) => {
+            showFormulas = e.target.checked;
+            renderTenses();
+        });
+
+        // Copy all 12 tenses
+        copyAllBtn.addEventListener('click', () => {
+            if (!currentTenses.length) return;
+            const fullText = currentTenses.map(t =>
+                `${t.id}. ${t.nameEn} (${t.nameBn})\n   EN: ${t.en}\n   BN: ${t.bn}`
+            ).join('\n\n');
+            copyTextToClipboard(fullText, 'All 12 tenses copied to clipboard!');
+        });
+
+        // Initialize with default sentence on page load
+        window.addEventListener('DOMContentLoaded', handleConvert);
+    </script>
+<script>
+(function(){
+  var P=[['I','1st person · Singular','উত্তম পুরুষ · একবচন'],['We','1st person · Plural','উত্তম পুরুষ · বহুবচন'],['You','2nd person · Singular/Plural','মধ্যম পুরুষ'],['He / She / It','3rd person · Singular','নাম পুরুষ · একবচন'],['They','3rd person · Plural','নাম পুরুষ · বহুবচন']];
+  var A=function(a,b){return [a,a,a,b,a];};
+  var D=[
+   ['Present','বর্তমান','bg-sky-50 text-sky-700',[
+    ['Simple','সাধারণ',A('do','does'),'V1 / V1+s'],
+    ['Continuous','ঘটমান',['am','are','are','is','are'],'am/is/are + V-ing'],
+    ['Perfect','পুরাঘটিত',A('have','has'),'have/has + V3'],
+    ['Perfect Continuous','পুরাঘটমান',A('have been','has been'),'have/has been + V-ing']]],
+   ['Past','অতীত','bg-rose-50 text-rose-700',[
+    ['Simple','সাধারণ',A('did','did'),'V2'],
+    ['Continuous','ঘটমান',['was','were','were','was','were'],'was/were + V-ing'],
+    ['Perfect','পুরাঘটিত',A('had','had'),'had + V3'],
+    ['Perfect Continuous','পুরাঘটমান',A('had been','had been'),'had been + V-ing']]],
+   ['Future','ভবিষ্যৎ','bg-emerald-50 text-emerald-700',[
+    ['Simple','সাধারণ',A('will','will'),'will + V1'],
+    ['Continuous','ঘটমান',A('will be','will be'),'will be + V-ing'],
+    ['Perfect','পুরাঘটিত',A('will have','will have'),'will have + V3'],
+    ['Perfect Continuous','পুরাঘটমান',A('will have been','will have been'),'will have been + V-ing']]]
+  ];
+  function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+  var t=document.getElementById('auxTable');
+  var th=document.createElement('thead'),hr=document.createElement('tr');
+  var h0=el('th',null,'Tense');h0.appendChild(el('small','font-bn','টেন্স'));hr.appendChild(h0);
+  P.forEach(function(p){var h=el('th',null,p[0]);h.appendChild(el('small',null,p[1]));h.appendChild(el('small','font-bn',p[2]));hr.appendChild(h);});
+  var hf=el('th',null,'Formula');hf.appendChild(el('small','font-bn','গঠন'));hr.appendChild(hf);
+  th.appendChild(hr);t.appendChild(th);
+  var tb=document.createElement('tbody');
+  D.forEach(function(g){
+    var gr=el('tr','grp');var gc=el('td','font-black uppercase tracking-wider text-xs '+g[2],g[0]+' · '+g[1]);gc.colSpan=7;gr.appendChild(gc);tb.appendChild(gr);
+    g[3].forEach(function(k){
+      var r=el('tr');
+      var c0=el('td','font-bold text-slate-800',g[0]+' '+k[0]+' ');
+      c0.appendChild(el('span','font-bn font-normal text-xs text-slate-500',g[1]+' '+k[1]));
+      c0.style.whiteSpace='nowrap';r.appendChild(c0);
+      k[2].forEach(function(a){var c=el('td');c.appendChild(el('b','text-brand-700',a));r.appendChild(c);});
+      r.appendChild(el('td','text-xs text-slate-500',k[3]));
+      tb.appendChild(r);
+    });
+  });
+  t.appendChild(tb);
+
+  window.highlightAuxColumn=function(s){
+    if(!s)return;
+    var c=s.person==='p1'?((s.en||'').toLowerCase()==='we'?1:0):s.person==='p2'?2:(s.is3rdSing?3:4);
+    t.querySelectorAll('.aux-hl').forEach(function(e){e.classList.remove('aux-hl');});
+    t.querySelectorAll('tr').forEach(function(r){if(r.classList.contains('grp'))return;var x=r.children[c+1];if(x)x.classList.add('aux-hl');});
+    var d=document.getElementById('aux-detected');
+    d.textContent='';
+    d.appendChild(document.createTextNode('Detected subject: '));
+    d.appendChild(el('b',null,s.en));
+    d.appendChild(document.createTextNode(' → '+P[c][1]+' '));
+    d.appendChild(el('span','font-bn text-slate-500','('+P[c][2]+')'));
+  };
+})();
+</script>
+</body>
+</html>
